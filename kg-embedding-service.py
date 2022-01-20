@@ -29,18 +29,18 @@ class KgEmbeddingService():
 
     # Entities
 
-    def get_all_entity(self, indexname, size=0):
+    def get_all_entity(self, indexname, size=0, timeout=500):
         # Note: size=0 means no limit and takes time
         data = json.JSONEncoder().encode({'indexname':indexname, 'size':size})
-        response = httpx.post(self.webservice_url + '/get-all-entity', data=data, headers=self.headers_json)
+        response = httpx.post(self.webservice_url + '/get-all-entity', data=data, headers=self.headers_json, timeout=timeout)
         return json.loads(response.text)
 
-    def get_entity_embedding(self, indexname, entities):
+    def get_entity_embedding(self, indexname, entities, timeout=500):
         # Single entity also has to be list
         if isinstance(entities, str):
             entities = [entities]
         data = json.JSONEncoder().encode({'indexname':indexname, 'entities':entities})
-        response = httpx.post(self.webservice_url + '/get-entity-embedding', data=data, headers=self.headers_json)
+        response = httpx.post(self.webservice_url + '/get-entity-embedding', data=data, headers=self.headers_json, timeout=timeout)
         return json.loads(response.text)
 
     def get_entity_neighbour(self, indexname, entity):
