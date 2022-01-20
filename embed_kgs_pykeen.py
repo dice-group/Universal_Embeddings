@@ -24,6 +24,7 @@ if __name__ == "__main__":
                 training=kg+"/train.txt",
                 testing=kg+"/test.txt",
                 model=model,
+                model_kwargs={'automatic_memory_optimization': True},
                 loss=args.loss,
                 epochs=args.epochs,
                 random_seed=args.random_seed,
