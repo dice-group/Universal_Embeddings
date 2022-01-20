@@ -3,7 +3,7 @@ from pykeen.pipeline import pipeline
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--kgs', type=str, nargs='+', default='DBpedia', help="Knowledge graph names")
+    parser.add_argument('--kgs', type=str, nargs='+', default=['DBpedia'], help="Knowledge graph names")
     parser.add_argument('--models', type = str, nargs='+', default=['TransE', 'Distmult'], help="Embedding model(s)")
     parser.add_argument('--loss', type=str, default='bceaftersigmoid', help="Loss to be used during training")
     parser.add_argument('--epochs', type=int, default=50, help="Number of training epochs")
