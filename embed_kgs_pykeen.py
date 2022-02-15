@@ -4,9 +4,11 @@ from pykeen.pipeline import pipeline
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--kgs', type=str, nargs='+', default=['DBpedia'], help="Knowledge graph names")
-    parser.add_argument('--models', type = str, nargs='+', default=['TransE', 'Distmult'], help="Embedding model(s)")
+    parser.add_argument('--models', type = str, nargs='+', default=['TransE'], help="Embedding model(s)")
     parser.add_argument('--loss', type=str, default='bceaftersigmoid', help="Loss to be used during training")
     parser.add_argument('--epochs', type=int, default=50, help="Number of training epochs")
+    parser.add_argument('--batch_size', type=int, default=64, help="The batch_size during training")
+    parser.add_argument('--embedding_dim', type=int, default=50, help="The embedding dimension")
     parser.add_argument('--random_seed', type=int, default=142, help="Random seed for model initialization")
     parser.add_argument('--dataset_kwargs', type=dict, default={'create_inverse_triples': False}, help="Dataset key arguments")
     args = parser.parse_args()
@@ -24,7 +26,8 @@ if __name__ == "__main__":
                 training=kg+"/train.txt",
                 testing=kg+"/test.txt",
                 model=model,
-                model_kwargs={'automatic_memory_optimization': True},
+                training_kwargs=dict(batch_size=args.batch_size),
+                model_kwargs=dict(embedding_dim=args.embedding_dim),
                 loss=args.loss,
                 epochs=args.epochs,
                 random_seed=args.random_seed,
