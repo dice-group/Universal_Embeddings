@@ -47,7 +47,7 @@
     * `mr` : float, MR values for alignment results
     * `mrr` : float, MRR values for alignment results
 
-* More details about the evaluation metrics can be found in `src/openea/modules/finding/alignment.p` and `src/openea/modules/finding/evaluation.py`
+* More details about the evaluation metrics can be found in `src/openea/modules/finding/alignment.py` and `src/openea/modules/finding/evaluation.py`
   
 #### Contact
 If you have any question or suggestion related to the GCN-Align experiment, please contact `hamada.zahera@upb.de` 
