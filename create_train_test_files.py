@@ -30,12 +30,13 @@ def write_to_file(storage_path, data):
     with open(storage_path, 'w') as file:
         file.writelines(data)
 
-def split_data(kg, test_size):
+def split_data(kg, file_name, test_size):
     """
     Function for splitting intial set of triples into train and test in a way that all entities and relations in the test data also appear in the training data
     
-    -- args: (1) knowledge graph name, should coincide with the folder name. Also make sure that the folder contains the knowledge graph in a file triples.txt,
+    -- args: (1) knowledge graph name, should coincide with the folder name. Also make sure that the folder contains the knowledge graph in a txt file,
              (2) test split size
+             (3) file_name: the name of the
     
     -- instructions: creates train.txt and test.txt
     
@@ -44,11 +45,11 @@ def split_data(kg, test_size):
     print()
     print(f'Creating train and test data for {kg}...')
     print()
-    path = kg+'/triples.txt'
+    path = kg+f'/{file_name}'
     with open(path, 'r') as file:
         data = file.readlines()
 #        data = list(filter(lambda x: len(x.split('\t')) == 3, data))
-        print(len(data))
+        print('Number of triples: ', len(data))
         
     train, temp_test = train_test_split(data, test_size=test_size, random_state=142)
     train_entities = get_entities(train)
@@ -66,12 +67,13 @@ def split_data(kg, test_size):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--kgs', type=str, nargs='+', default=['DBpedia'], help='Sequence of knowledge graphs to preprocess, this reduces to creating creating train.txt and test.txt')
+    parser.add_argument('--kgs', type=str, nargs='+', default=['DBpedia'], help='Sequence of knowledge graphs to preprocess, this reduces to creating train.txt and test.txt')
+    parser.add_argument('--file_name', type=str, nargs='+', default=['triples.txt'], help='Sequence of file names for KGs)
     parser.add_argument('--test_size', type=float, default=0.15, help='Test size during split')
     
     args = parser.parse_args()
     
-    for kg in args.kgs:
-        split_data(kg, args.test_size)
+    for kg, file_name in zip(args.kgs, args.file_name):
+        split_data(kg, file_name, args.test_size)
     
     
