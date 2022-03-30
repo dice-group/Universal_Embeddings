@@ -68,7 +68,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--kgs', type=str, nargs='+', default=['DBpedia'], help='Sequence of knowledge graphs to preprocess, this reduces to creating train.txt and test.txt')
-    parser.add_argument('--file_name', type=str, nargs='+', default=['triples.txt'], help='Sequence of file names for KGs)
+    parser.add_argument('--file_name', type=str, nargs='+', default=['triples.txt'], help='Sequence of file names for KGs')
     parser.add_argument('--test_size', type=float, default=0.15, help='Test size during split')
     
     args = parser.parse_args()
