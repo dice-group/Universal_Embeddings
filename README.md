@@ -1,8 +1,5 @@
 # Universal_Embeddings
-This repository implements universal embeddings for KGs using the orthogonal procrustes algorithm 
-
-## Installation
-`pip3 install -r requirements.txt`
+This repository implements universal embeddings for KGs using the orthogonal procrustes algorithm.
 
 ## Installation
 
@@ -18,7 +15,7 @@ Create a working environment and activate it:
 ```
 conda env create -f environment.yml
 
-conda activate nces
+conda activate unikge
  
 ```
 
