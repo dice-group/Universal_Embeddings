@@ -8,9 +8,6 @@ Clone this repository:
 https://github.com/fosterreproducibleresearch/NCES.git
 ``` 
 
-```
-conda env create -f environment.yml
-```
 Create a working environment and activate it:
 ```
 conda env create -f environment.yml
