@@ -5,7 +5,7 @@ This repository implements universal embeddings for KGs using the orthogonal pro
 
 Clone this repository:
 ```
-https://github.com/fosterreproducibleresearch/NCES.git
+https://github.com/dice-group/Universal_Embeddings.git
 ``` 
 
 Create a working environment and activate it:
