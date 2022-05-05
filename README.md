@@ -21,4 +21,4 @@ Download Datasets from [drive](https://drive.google.com/file/d/1lr760Im4iqDsUMFx
 ## Reproducing the reported results
 
 - To reproduce the evaluation results, open and run the jupyter notebook file Embedding_Alignment.ipynb
-
+- Or alternatively open a terminal and run ``` run_evaluation.py ```. Use -h for more options
