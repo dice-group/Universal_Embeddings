@@ -6,9 +6,10 @@ class SetTransformer(nn.Module):
         self.name = 'SetTransformer'
         self.enc = ISAB(kwargs.input_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln)
         self.dec = SAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln)
-        self.Loss = nn.CosineEmbeddingLoss()
+        self.Loss = nn.CosineEmbeddingLoss(margin=-0.2)
         self.similarity = nn.CosineSimilarity()
         self.out_dim = kwargs.proj_dim
+        self.precision = kwargs.precision
         
     def loss(self, out, y):
         for i in range(out.shape[1]-1):
@@ -20,7 +21,7 @@ class SetTransformer(nn.Module):
     
     def score(self, out, y):
         scores = torch.cat([self.similarity(out[:,i,:].squeeze(), out[:,i+1,:].squeeze()).unsqueeze(1) for i in range(out.shape[1]-1)], 1).min(dim=1).values
-        return (torch.sign(scores) == y).sum()
+        return (torch.sign(scores-self.precision) == y).sum().cpu()
         
         
     def forward(self, X):

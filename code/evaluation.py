@@ -3,29 +3,29 @@ import time
 import numpy as np
 import gc
 gc.enable()
-from similarity import sim_multi_threads
+from similarity import sim, sim_multi_threads, task_divide
 
 ### Evaluation metrics are taken from Open EA (https://github.com/nju-websoft/OpenEA) for a fair comparison with other approaches
 
 def merge_dic(dic1, dic2):
     return {**dic1, **dic2}
 
-def task_divide(idx, n):
-    total = len(idx)
-    if n <= 0 or 0 == total:
-        return [idx]
-    if n > total:
-        return [idx]
-    elif n == total:
-        return [[i] for i in idx]
-    else:
-        j = total // n
-        tasks = []
-        for i in range(0, (n - 1) * j, j):
-            tasks.append(idx[i:i + j])
-        tasks.append(idx[(n - 1) * j:])
-        return tasks
-    
+#def task_divide(idx, n):
+#    total = len(idx)
+#    if n <= 0 or 0 == total:
+#        return [idx]
+#    if n > total:
+#        return [idx]
+#    elif n == total:
+#        return [[i] for i in idx]
+#    else:
+#        j = total // n
+#        tasks = []
+#        for i in range(0, (n - 1) * j, j):
+#            tasks.append(idx[i:i + j])
+#        tasks.append(idx[(n - 1) * j:])
+#        return tasks
+#    
 
 def calculate_rank(idx, sim_mat, top_k, accurate, total_num):
     assert 1 in top_k
@@ -80,8 +80,8 @@ def greedy_alignment(embed1, embed2, top_k=[1, 3, 5], threads_num=16, metric='co
     mrr : float, MRR values for alignment results
     """
     t = time.time()
-    sim_mat = sim_multi_threads(embed1, embed2, threads_num=threads_num)
-    #sim(embed1, embed2, metric=metric, normalize=normalize, csls_k=csls_k)
+    #sim_mat = sim_multi_threads(embed1, embed2, threads_num=threads_num)
+    sim_mat = sim(embed1, embed2, metric=metric, normalize=normalize, csls_k=csls_k)
     num = sim_mat.shape[0]
     if threads_num > 1:
         hits = [0] * len(top_k)

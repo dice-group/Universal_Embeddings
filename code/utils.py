@@ -7,7 +7,7 @@ from tqdm import tqdm
 import random
 from torch.utils.data import DataLoader
 
-def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, given_test_set, return_test_set=True):
+def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, train_ents, valid_ents, test_ents, return_test_embs=True):
     """This function takes the dictionary of aligned entities between two KGs and their corresponding embeddings (as entity to vector dictionaries)
     and returns S, T, S_test, T_test, and R defined as follows:
     
@@ -18,31 +18,34 @@ def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, giv
     -- S_test and T_test are the embedding matrices corresponding to the lef-out SameAs links
     
     """
+    print()
     
-    if return_test_set:
-        assert given_test_set is not None, "given_test_set cannot be None if return_test_set is True"
-        test_ents = given_test_set
-        train_ents = list(set(alignment_dict.keys())-set(test_ents))
-    else:
+    if not return_test_embs:
         train_ents = alignment_dict.keys()
     emb_dim = entity2vec1.shape[1]
     S = np.empty((len(train_ents), emb_dim))
     T = np.empty((len(train_ents), emb_dim))
-    if return_test_set:
+    if return_test_embs:
         S_test = np.empty((len(test_ents), emb_dim))
         T_test = np.empty((len(test_ents), emb_dim))
+        S_valid = np.empty((len(valid_ents), emb_dim))
+        T_valid = np.empty((len(valid_ents), emb_dim))
 
-    for i, key in tqdm(enumerate(train_ents), total=len(train_ents), desc='Computing S and T'):
+    for i, key in tqdm(enumerate(train_ents), total=len(train_ents), desc='Building training alignment matrices...'):
         S[i] = entity2vec1[key] if isinstance(entity2vec1, dict) else entity2vec1.loc[key].values
         T[i] = entity2vec2[alignment_dict[key]] if isinstance(entity2vec2, dict) else entity2vec2.loc[alignment_dict[key]].values
         
-    if return_test_set:
-        for i, key in tqdm(enumerate(test_ents), total=len(test_ents), desc='Computing S_test and T_test'):
+    if return_test_embs:
+        for i, key in tqdm(enumerate(test_ents), total=len(test_ents), desc='Building test alignment matrices'):
             S_test[i] = entity2vec1[key] if isinstance(entity2vec1, dict) else entity2vec1.loc[key].values
             T_test[i] = entity2vec2[alignment_dict[key]] if isinstance(entity2vec2, dict) else entity2vec2.loc[alignment_dict[key]].values
+            
+        for i, key in tqdm(enumerate(valid_ents), total=len(valid_ents), desc='Building validation alignment matrices'):
+            S_valid[i] = entity2vec1[key] if isinstance(entity2vec1, dict) else entity2vec1.loc[key].values
+            T_valid[i] = entity2vec2[alignment_dict[key]] if isinstance(entity2vec2, dict) else entity2vec2.loc[alignment_dict[key]].values
     
-    if return_test_set:
-        return S, T, S_test, T_test
+    if return_test_embs:
+        return S, T, S_valid, T_valid, S_test, T_test
     else:
         return S, T
         
@@ -57,10 +60,18 @@ def get_data(dataset, fold):
         kg1_kg2_links = dict([line.split('\t') for line in kg1_kg2_links])
 
     with open(f"{dataset}/KG/721_5fold/{fold}/test_links") as file:
-        test_set = file.read().strip().split('\n')
-    test_set = [line.split('\t')[0] for line in test_set]
+        test_ents = file.read().strip().split('\n')
+    test_ents = [line.split('\t')[0] for line in test_ents]
     
-    return emb1, emb2, test_set, kg1_kg2_links
+    with open(f"{dataset}/KG/721_5fold/{fold}/train_links") as file:
+        train_ents = file.read().strip().split('\n')
+    train_ents = [line.split('\t')[0] for line in train_ents]
+    
+    with open(f"{dataset}/KG/721_5fold/{fold}/valid_links") as file:
+        valid_ents = file.read().strip().split('\n')
+    valid_ents = [line.split('\t')[0] for line in valid_ents]
+    
+    return emb1, emb2, train_ents, valid_ents, test_ents, kg1_kg2_links
 
 
 def generate_false_matching(data):
@@ -75,20 +86,33 @@ def generate_false_matching(data):
     return source, target
 
 
+def _init_fn(worker_id):
+    np.random.seed(3 + worker_id)
+    
 def train(model, train_dataset, storage_path, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
     import copy
+    gpu = False
+    if torch.cuda.is_available():
+        gpu = True
+        print("\n##### GPU available! #####\n")
+    device = torch.device("cuda" if gpu else "cpu")
     print()
-    print("*"*30)
-    print(f"{model.name} starts training on {train_dataset.name}")
+    print("*"*60)
+    print(f"FOLD {fold}: {model.name} starts training on {train_dataset.name}")
+    print("*"*60)
+    print()
     model.train()
+    model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=True)
     best_weights = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     Accuracy_list = []
     for e in range(epochs):
         Acc = 0.0
         for x, y in tqdm(train_dataloader):
+            if gpu:
+                x, y = x.cuda(), y.cuda()
             out = model(x)
             loss_val = model.loss(out, y)
             Acc += model.score(out.detach(), y)
@@ -108,16 +132,25 @@ def train(model, train_dataset, storage_path, fold=1, epochs = 50, num_workers=8
     return model
     
 def test(model, test_dataset, num_workers=8, batch_size=128):
+    gpu = False
+    if torch.cuda.is_available():
+        gpu = True
+    device = torch.device("cuda" if gpu else "cpu")
     model.eval()
+    model.to(device)
     Acc = 0.0
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False)
-    New_embs =torch.empty(len(test_dataloader), 2, model.out_dim)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=False)
+    num_kgs = test_dataset[0][0].shape[0]
+    New_embs = torch.empty(len(test_dataset), num_kgs, model.out_dim)
     idx = 0
     for x, y in tqdm(test_dataloader):
+        if gpu:
+            x, y = x.cuda(), y.cuda()
         out = model(x)
         Acc += model.score(out.detach(), y)
-    New_embs[idx:x.shape[0], :, :] = out.detach()
-    idx += x.shape[0]
-    print("Test acc: ", Acc/len(test_dataset))
+        New_embs[idx:idx+x.shape[0], :, :] = out.detach().cpu()
+        idx += x.shape[0]
+    print("Acc: ", Acc/len(test_dataset))
+    print("Embedding shape: ", New_embs.shape)
     alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:].squeeze()), np.array(New_embs[:,1,:].squeeze()))
     return alignment_rest, hits, mr, mrr
