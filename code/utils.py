@@ -89,48 +89,6 @@ def generate_false_matching(data):
 def _init_fn(worker_id):
     np.random.seed(3 + worker_id)
     
-def train(model, train_dataset, storage_path, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
-    import copy
-    gpu = False
-    if torch.cuda.is_available():
-        gpu = True
-        print("\n##### GPU available! #####\n")
-    device = torch.device("cuda" if gpu else "cpu")
-    print()
-    print("*"*60)
-    print(f"FOLD {fold}: {model.name} starts training on {train_dataset.name}")
-    print("*"*60)
-    print()
-    model.train()
-    model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=True)
-    best_weights = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
-    Accuracy_list = []
-    for e in range(epochs):
-        Acc = 0.0
-        for x, y in tqdm(train_dataloader):
-            if gpu:
-                x, y = x.cuda(), y.cuda()
-            out = model(x)
-            loss = model.loss(out, y)
-            Acc += model.score(out.detach(), y)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        Acc = (Acc/len(train_dataset)).item()
-        print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
-        Accuracy_list.append(Acc)
-        if Acc > best_acc:
-            best_acc = Acc
-            best_weights = copy.deepcopy(model.state_dict())
-    model.load_state_dict(best_weights)
-    torch.save(model, f"{storage_path}/SetTransformer_fold{fold}_{round(best_acc, 2)}.pt")
-    with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
-        json.dump({"train acc": Accuracy_list}, file)
-    return model
-    
 def test(model, test_dataset, num_workers=8, batch_size=128):
     gpu = False
     if torch.cuda.is_available():
@@ -153,3 +111,49 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     print("Embedding shape: ", New_embs.shape)
     alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:].squeeze()), np.array(New_embs[:,1,:].squeeze()))
     return alignment_rest, hits, mr, mrr
+
+def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
+    import copy
+    gpu = False
+    if torch.cuda.is_available():
+        gpu = True
+        print("\n##### GPU available! #####\n")
+    device = torch.device("cuda" if gpu else "cpu")
+    print()
+    print("*"*60)
+    print(f"FOLD {fold}: {model.name} starts training on {train_dataset.name}")
+    print("*"*60)
+    print()
+    model.train()
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=True)
+    best_weights = copy.deepcopy(model.state_dict())
+    best_hits1 = 0.0
+    Accuracy_list = []
+    for e in range(epochs):
+        Acc = 0.0
+        for x, y in tqdm(train_dataloader):
+            if gpu:
+                x, y = x.cuda(), y.cuda()
+            out = model(x)
+            loss = model.loss(out, y)
+            Acc += model.score(out.detach(), y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        Acc = (Acc/len(train_dataset)).item()
+        print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
+        print("\n#### Validation ####")
+        _, hits, _, _ = test(model, valid_dataset, num_workers, batch_size)
+        print("#### Validation ####\n")
+        Accuracy_list.append(Acc)
+        if hits[0] > best_hits1:
+            best_hits1 = hits[0]
+            best_weights = copy.deepcopy(model.state_dict())
+    model.load_state_dict(best_weights)
+    torch.save(model, f"{storage_path}/SetTransformer_fold{fold}_{round(best_hits1, 2)}.pt")
+    with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
+        json.dump({"train acc": Accuracy_list}, file)
+    return best_hits1, model
+    

@@ -57,7 +57,7 @@ data_path = {"dbpenfr15kv1": "../EN_FR_15K_V1" , "dbpenfr15kv2": "../EN_FR_15K_V
 
 for dataset in args.datasets:
     test_res = {i: None for i in range(1, args.folds+1)}
-    valid_res = {i: None for i in range(1, args.folds+1)}
+    valid_res = []
     for fold in range(1,args.folds+1):
         emb1, emb2, train_ents, valid_ents, test_ents, links = get_data(data_path[dataset], fold)
         S, T, S_valid, T_valid, S_test, T_test = get_source_and_target_matrices(links, emb1, emb2, train_ents, valid_ents, test_ents)
@@ -66,22 +66,22 @@ for dataset in args.datasets:
         S_test, T_test = torch.FloatTensor(S_test), torch.FloatTensor(T_test)
         input_size = S.shape[1]
         args.input_size = input_size
+        
+        ## Validation data
+        valid_labels = torch.ones(S_valid.shape[0])
+        data_valid = [S_valid, T_valid, valid_labels]
+        valid_dataset = AlignDataSet(data_valid, dataset.upper(), args.chunk_size)
+        ##
+        
         corrupt_source, corrupt_target = generate_false_matching([S,T])
         labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
         source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
         data = [source, target, labels]
         train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
-        model = train(model, train_dataset, data_path[dataset], fold, args.epochs, args.num_workers, args.batch_size, args.lr)
+        model, valid_results = train(model, train_dataset, valid_dataset, data_path[dataset], fold, args.epochs, args.num_workers, args.batch_size, args.lr)
+        valid_res.append(valid_results)
         
-        ## Validation
-        print("\n ### Validation... ###")
-        valid_labels = torch.ones(S_valid.shape[0])
-        data_valid = [S_valid, T_valid, valid_labels]
-        valid_dataset = AlignDataSet(data_valid, dataset.upper(), args.chunk_size)
-        alignment_rest, hits, mr, mrr = test(model, valid_dataset, args.num_workers, args.batch_size)
-        valid_res[fold] = [list(hits), mr, mrr]
-        print()
             
         ## Test
         
