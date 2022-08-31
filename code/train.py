@@ -32,13 +32,15 @@ parser.add_argument('--datasets', type=str, nargs='+', default=['dbpenfr15kv1', 
                                                                 'dbpende100kv1', 'dbpende100kv2'],
                                                                 help='Name of aligned KGs')
 parser.add_argument('--lr', type=float, default=3e-4, help='Learning rate')
-parser.add_argument('--num_workers', type=int, default=8, help='Number of workers to use to load training data')
+parser.add_argument('--num_workers', type=int, default=8, help='Number of workers to use to load data as into batches')
+parser.add_argument('--chunk_size', type=int, default=128, help='Size of chunks along the embedding vector of each entity')
 parser.add_argument('--input_size', type=int, default=300, help='Input size (embedding dimension)')
-parser.add_argument('--proj_dim', type=int, default=128, help='Size of hidden layers')
+parser.add_argument('--proj_dim', type=int, default=256, help='Size of hidden layers')
 parser.add_argument('--num_inds', type=int, default=32, help='Number of induced components')
 parser.add_argument('--num_heads', type=int, default=4, help='Number of attention heads')
 parser.add_argument('--precision', type=float, default=0.2, help='The precision or confidence for the alignment')
-parser.add_argument('--num_seeds', type=int, default=1, help='Number of seed components in the output')
+parser.add_argument('--margin', type=float, default=0.0, help='The margin in CosineEmbeddingLoss')
+parser.add_argument('--num_seeds', type=int, default=2, help='Number of seed components in the output')
 parser.add_argument('--ln', type=str2bool, default=False, help='Whether to use layer normalization')
 parser.add_argument('--epochs', type=int, default=50, help='Number of training epochs')
 parser.add_argument('--folds', type=int, default=5, help='Number of folds for cross-validation')
@@ -68,7 +70,7 @@ for dataset in args.datasets:
         labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
         source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
         data = [source, target, labels]
-        train_dataset = AlignDataSet(data, dataset.upper())
+        train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
         model = train(model, train_dataset, data_path[dataset], fold, args.epochs, args.num_workers, args.batch_size, args.lr)
         
@@ -76,7 +78,7 @@ for dataset in args.datasets:
         print("\n ### Validation... ###")
         valid_labels = torch.ones(S_valid.shape[0])
         data_valid = [S_valid, T_valid, valid_labels]
-        valid_dataset = AlignDataSet(data_valid, dataset.upper())
+        valid_dataset = AlignDataSet(data_valid, dataset.upper(), args.chunk_size)
         alignment_rest, hits, mr, mrr = test(model, valid_dataset, args.num_workers, args.batch_size)
         valid_res[fold] = [list(hits), mr, mrr]
         print()
@@ -87,7 +89,7 @@ for dataset in args.datasets:
             print("\n ### Test... ###")
             test_labels = torch.ones(S_test.shape[0])
             data_test = [S_test, T_test, test_labels]
-            test_dataset = AlignDataSet(data_test, dataset.upper())
+            test_dataset = AlignDataSet(data_test, dataset.upper(), args.chunk_size)
             alignment_rest, hits, mr, mrr = test(model, test_dataset, args.num_workers, args.batch_size)
             test_res[fold] = [list(hits), mr, mrr]
             print()

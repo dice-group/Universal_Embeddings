@@ -4,11 +4,20 @@ class SetTransformer(nn.Module):
     def __init__(self, kwargs):
         super(SetTransformer, self).__init__()
         self.name = 'SetTransformer'
-        self.enc = ISAB(kwargs.input_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln)
-        self.dec = SAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln)
-        self.Loss = nn.CosineEmbeddingLoss(margin=-0.2)
+        
+        self.enc = nn.Sequential(ISAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
+                                 ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
+        
+        #self.enc = nn.Sequential(SAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln),
+        #                         SAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln))
+        
+        self.dec = nn.Sequential(PMA(kwargs.proj_dim, kwargs.num_heads, kwargs.num_seeds, ln=kwargs.ln),
+                                 SAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln))
+        
+        self.Loss = nn.CosineEmbeddingLoss(margin=kwargs.margin)
         self.similarity = nn.CosineSimilarity()
         self.out_dim = kwargs.proj_dim
+        self.num_seeds = kwargs.num_seeds
         self.precision = kwargs.precision
         
     def loss(self, out, y):
@@ -21,7 +30,7 @@ class SetTransformer(nn.Module):
     
     def score(self, out, y):
         scores = torch.cat([self.similarity(out[:,i,:].squeeze(), out[:,i+1,:].squeeze()).unsqueeze(1) for i in range(out.shape[1]-1)], 1).min(dim=1).values
-        return (torch.sign(scores-self.precision) == y).sum().cpu()
+        return torch.eq(torch.sign(scores-self.precision), y).sum().cpu()
         
         
     def forward(self, X):

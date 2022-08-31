@@ -114,13 +114,13 @@ def train(model, train_dataset, storage_path, fold=1, epochs = 50, num_workers=8
             if gpu:
                 x, y = x.cuda(), y.cuda()
             out = model(x)
-            loss_val = model.loss(out, y)
+            loss = model.loss(out, y)
             Acc += model.score(out.detach(), y)
             optimizer.zero_grad()
-            loss_val.backward()
+            loss.backward()
             optimizer.step()
         Acc = (Acc/len(train_dataset)).item()
-        print(f"Epoch {e+1}/{epochs} ... Loss: {loss_val.item()}, Acc: {Acc}")
+        print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
         Accuracy_list.append(Acc)
         if Acc > best_acc:
             best_acc = Acc
@@ -140,8 +140,7 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     model.to(device)
     Acc = 0.0
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=False)
-    num_kgs = test_dataset[0][0].shape[0]
-    New_embs = torch.empty(len(test_dataset), num_kgs, model.out_dim)
+    New_embs = torch.empty(len(test_dataset), model.num_seeds, model.out_dim)
     idx = 0
     for x, y in tqdm(test_dataloader):
         if gpu:
