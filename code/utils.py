@@ -96,7 +96,6 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     device = torch.device("cuda" if gpu else "cpu")
     model.eval()
     model.to(device)
-    Acc = 0.0
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=False)
     New_embs = torch.empty(len(test_dataset), model.num_seeds, model.out_dim)
     idx = 0
@@ -104,11 +103,8 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
         if gpu:
             x, y = x.cuda(), y.cuda()
         out = model(x)
-        Acc += model.score(out.detach(), y)
         New_embs[idx:idx+x.shape[0], :, :] = out.detach().cpu()
         idx += x.shape[0]
-    print("Acc: ", Acc/len(test_dataset))
-    print("Embedding shape: ", New_embs.shape)
     alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:].squeeze()), np.array(New_embs[:,1,:].squeeze()))
     return alignment_rest, hits, mr, mrr
 
@@ -155,5 +151,6 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
     torch.save(model, f"{storage_path}/SetTransformer_fold{fold}_{round(best_hits1, 2)}.pt")
     with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
         json.dump({"train acc": Accuracy_list}, file)
-    return best_hits1, model
+    print("Best Hits1: ", best_hits1)
+    return model, best_hits1
     
