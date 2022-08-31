@@ -6,6 +6,7 @@ class SetTransformer(nn.Module):
         self.name = 'SetTransformer'
         
         self.enc = nn.Sequential(ISAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
+                                 ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
                                  ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
         
         #self.enc = nn.Sequential(SAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln),
