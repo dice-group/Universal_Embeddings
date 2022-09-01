@@ -6,6 +6,7 @@ from evaluation import greedy_alignment
 from tqdm import tqdm
 import random
 from torch.utils.data import DataLoader
+import time
 
 def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, train_ents, valid_ents, test_ents, return_test_embs=True):
     """This function takes the dictionary of aligned entities between two KGs and their corresponding embeddings (as entity to vector dictionaries)
@@ -127,6 +128,7 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
     best_weights = copy.deepcopy(model.state_dict())
     best_hits1 = 0.0
     Accuracy_list = []
+    t0 = time.time()
     for e in range(epochs):
         Acc = 0.0
         for x, y in tqdm(train_dataloader):
@@ -147,10 +149,12 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
         if hits[0] > best_hits1:
             best_hits1 = hits[0]
             best_weights = copy.deepcopy(model.state_dict())
+    t1 = time.time()
+    duration = t1-t0
     model.load_state_dict(best_weights)
     torch.save(model, f"{storage_path}/SetTransformer_fold{fold}_{round(best_hits1, 2)}.pt")
     with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
         json.dump({"train acc": Accuracy_list}, file)
     print("Best Hits1: ", best_hits1)
-    return model, best_hits1
+    return model, best_hits1, duration
     
