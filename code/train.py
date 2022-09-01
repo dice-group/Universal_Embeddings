@@ -80,6 +80,9 @@ for dataset in args.datasets:
         train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
         model, valid_results, duration = train(model, train_dataset, valid_dataset, data_path[dataset], fold, args.epochs, args.num_workers, args.batch_size, args.lr)
+        print("*****")
+        print("Training time: ", duration)
+        print("*****")
         valid_res.append([valid_results, duration])
         
             
