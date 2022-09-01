@@ -7,6 +7,7 @@ from tqdm import tqdm
 import random
 from torch.utils.data import DataLoader
 import time
+from sklearn import preprocessing
 
 def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, train_ents, valid_ents, test_ents, return_test_embs=True):
     """This function takes the dictionary of aligned entities between two KGs and their corresponding embeddings (as entity to vector dictionaries)
@@ -46,8 +47,12 @@ def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, tra
             T_valid[i] = entity2vec2[alignment_dict[key]] if isinstance(entity2vec2, dict) else entity2vec2.loc[alignment_dict[key]].values
     
     if return_test_embs:
+        S, T = preprocessing.normalize(S), preprocessing.normalize(T)
+        S_test, T_test = preprocessing.normalize(S_test), preprocessing.normalize(T_test)
+        S_valid, T_valid = preprocessing.normalize(S_valid), preprocessing.normalize(T_valid)
         return S, T, S_valid, T_valid, S_test, T_test
     else:
+        S, T = preprocessing.normalize(S), preprocessing.normalize(T)
         return S, T
         
         

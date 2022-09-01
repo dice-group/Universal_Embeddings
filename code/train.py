@@ -50,6 +50,7 @@ parser.add_argument('--test', type=str2bool, default=True, help='Whether to run 
 parser.add_argument('--final', type=str2bool, default=False, help='Align the given KGs (training and test data are combined) for final universal embeddings')
 args = parser.parse_args()
 
+
 data_path = {"dbpenfr15kv1": "../EN_FR_15K_V1" , "dbpenfr15kv2": "../EN_FR_15K_V2",\
              "dbpenfr100kv1": "../EN_FR_100K_V1", "dbpenfr100kv2": "../EN_FR_100K_V2",\
              "dbpende15kv1": "../EN_DE_15K_V1" , "dbpende15kv2": "../EN_DE_15K_V2",\
@@ -57,7 +58,10 @@ data_path = {"dbpenfr15kv1": "../EN_FR_15K_V1" , "dbpenfr15kv2": "../EN_FR_15K_V
                 }
 
 for dataset in args.datasets:
-    test_res = {i: None for i in range(1, args.folds+1)}
+    test_res = {f"fold{i}": None for i in range(1, args.folds+1)}
+    with open(data_path[dataset]+"/settings.json", "w") as setting:
+        json.dump(vars(args), setting)
+        
     valid_res = []
     for fold in range(1,args.folds+1):
         emb1, emb2, train_ents, valid_ents, test_ents, links = get_data(data_path[dataset], fold)
