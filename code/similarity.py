@@ -96,8 +96,8 @@ def calculate_nearest_k(sim_mat, k):
     return np.mean(nearest_k, axis=1)
 
 
-def csls_sim_multi_threads(sim_mat, k, nums_threads):
-    tasks = task_divide(np.array(range(sim_mat.shape[0])), nums_threads)
+def csls_sim_multi_threads(sim_mat, k, threads_num):
+    tasks = task_divide(np.array(range(sim_mat.shape[0])), threads_num)
     pool = multiprocessing.Pool(processes=len(tasks))
     rests = list()
     for task in tasks:
@@ -116,6 +116,8 @@ def csls_sim_multi_threads(sim_mat, k, nums_threads):
 
 
 def sim_multi_threads(embeds1, embeds2, threads_num=16):
+    embeds1 = preprocessing.normalize(embeds1)
+    embeds2 = preprocessing.normalize(embeds2)
     num = embeds1.shape[0]
     idx_list = task_divide(np.array(range(num)), threads_num)
     pool = multiprocessing.Pool(processes=len(idx_list))

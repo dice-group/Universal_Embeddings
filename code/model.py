@@ -7,16 +7,16 @@ class SetTransformer(nn.Module):
         
         self.enc = nn.Sequential(ISAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
                                  ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
-                                 ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
+                                 ISAB(kwargs.proj_dim, kwargs.output_size, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
         
         #self.enc = nn.Sequential(SAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln),
         #                         SAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln))
         
-        self.dec = nn.Sequential(PMA(kwargs.proj_dim, kwargs.num_heads, kwargs.num_seeds, ln=kwargs.ln))
+        self.dec = PMA(kwargs.output_size, kwargs.num_heads, kwargs.num_seeds, ln=kwargs.ln)
         
         self.Loss = nn.CosineEmbeddingLoss(margin=kwargs.margin)
         self.similarity = nn.CosineSimilarity()
-        self.out_dim = kwargs.proj_dim
+        self.out_dim = kwargs.output_size
         self.num_seeds = kwargs.num_seeds
         self.precision = kwargs.precision
         

@@ -80,8 +80,8 @@ def greedy_alignment(embed1, embed2, top_k=[1, 3, 5], threads_num=16, metric='co
     mrr : float, MRR values for alignment results
     """
     t = time.time()
-    #sim_mat = sim_multi_threads(embed1, embed2, threads_num=threads_num)
-    sim_mat = sim(embed1, embed2, metric=metric, normalize=normalize, csls_k=csls_k)
+    sim_mat = sim_multi_threads(embed1, embed2, threads_num=threads_num)
+    #sim_mat = sim(embed1, embed2, metric=metric, normalize=normalize, csls_k=csls_k)
     num = sim_mat.shape[0]
     if threads_num > 1:
         hits = [0] * len(top_k)
