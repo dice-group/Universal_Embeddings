@@ -47,12 +47,12 @@ def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, tra
             T_valid[i] = entity2vec2[alignment_dict[key]] if isinstance(entity2vec2, dict) else entity2vec2.loc[alignment_dict[key]].values
     
     if return_test_embs:
-        S, T = preprocessing.normalize(S), preprocessing.normalize(T)
-        S_test, T_test = preprocessing.normalize(S_test), preprocessing.normalize(T_test)
-        S_valid, T_valid = preprocessing.normalize(S_valid), preprocessing.normalize(T_valid)
+        #S, T = preprocessing.normalize(S), preprocessing.normalize(T)
+        #S_test, T_test = preprocessing.normalize(S_test), preprocessing.normalize(T_test)
+        #S_valid, T_valid = preprocessing.normalize(S_valid), preprocessing.normalize(T_valid)
         return S, T, S_valid, T_valid, S_test, T_test
     else:
-        S, T = preprocessing.normalize(S), preprocessing.normalize(T)
+        #S, T = preprocessing.normalize(S), preprocessing.normalize(T)
         return S, T
         
         
