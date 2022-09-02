@@ -43,14 +43,16 @@ parser.add_argument('--precision', type=float, default=0.2, help='The precision 
 parser.add_argument('--margin', type=float, default=0.0, help='The margin in CosineEmbeddingLoss')
 parser.add_argument('--num_seeds', type=int, default=2, help='Number of seed components in the output')
 parser.add_argument('--ln', type=str2bool, default=False, help='Whether to use layer normalization')
-parser.add_argument('--epochs', type=int, default=50, help='Number of training epochs')
+parser.add_argument('--epochs', type=int, default=200, help='Number of training epochs')
 parser.add_argument('--folds', type=int, default=5, help='Number of folds for cross-validation')
 parser.add_argument('--batch_size', type=int, default=256, help='Training batch size')
 parser.add_argument('--test', type=str2bool, default=True, help='Whether to run evaluation on the test data')
 parser.add_argument('--final', type=str2bool, default=False, help='Align the given KGs (training and test data are combined) for final universal embeddings')
 args = parser.parse_args()
 
-
+print("\nSettings...")
+print(vars(args))
+print()
 data_path = {"dbpenfr15kv1": "../EN_FR_15K_V1" , "dbpenfr15kv2": "../EN_FR_15K_V2",\
              "dbpenfr100kv1": "../EN_FR_100K_V1", "dbpenfr100kv2": "../EN_FR_100K_V2",\
              "dbpende15kv1": "../EN_DE_15K_V1" , "dbpende15kv2": "../EN_DE_15K_V2",\
