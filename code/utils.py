@@ -160,7 +160,7 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
     t1 = time.time()
     duration = t1-t0
     model.load_state_dict(best_weights)
-    torch.save(model, f"{storage_path}/SetTransformer_fold{fold}_{round(best_hits1, 2)}.pt")
+    torch.save(model, f"{storage_path}/SetTransformer_fold{fold}.pt")
     with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
         json.dump({"train acc": Accuracy_list}, file)
     print("Best Hits1: ", best_hits1)
