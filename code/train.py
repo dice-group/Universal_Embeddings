@@ -86,6 +86,9 @@ for dataset in args.datasets:
         data = [source, target, labels]
         train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
+        print()
+        print("Model size: ", sum([p.numel() for p in model.parameters()]))
+        print()
         model, valid_results, duration = train(model, train_dataset, valid_dataset, data_path[dataset], fold, args.epochs, args.num_workers, args.batch_size, args.lr)
         print("*****")
         print("Training time: ", duration)

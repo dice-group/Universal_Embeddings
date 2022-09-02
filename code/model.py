@@ -9,10 +9,9 @@ class SetTransformer(nn.Module):
                                  ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
                                  ISAB(kwargs.proj_dim, kwargs.output_size, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
         
-        #self.enc = nn.Sequential(SAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln),
-        #                         SAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, ln=kwargs.ln))
         
-        self.dec = PMA(kwargs.output_size, kwargs.num_heads, kwargs.num_seeds, ln=kwargs.ln)
+        self.dec = nn.Sequential(PMA(kwargs.output_size, kwargs.num_heads, kwargs.num_seeds, ln=kwargs.ln),
+                                 SAB(kwargs.output_size, kwargs.output_size, kwargs.num_heads, ln=kwargs.ln))
         
         self.Loss = nn.CosineEmbeddingLoss(margin=kwargs.margin)
         self.similarity = nn.CosineSimilarity()
