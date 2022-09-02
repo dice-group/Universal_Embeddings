@@ -16,8 +16,9 @@ class AlignDataSet(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         source = torch.FloatTensor(self.Source[idx])
         target = torch.FloatTensor(self.Target[idx])
-        if self.chunk_size < source.shape[0]:
-            source = torch.cat([chunk.unsqueeze(0) for chunk in pad_sequence(torch.split(source, self.chunk_size), batch_first=True)], 0)
-            target = torch.cat([chunk.unsqueeze(0) for chunk in pad_sequence(torch.split(target, self.chunk_size), batch_first=True)], 0)
+        #if self.chunk_size < source.shape[0]:
+        #    source = torch.cat([chunk.unsqueeze(0) for chunk in pad_sequence(torch.split(source, self.chunk_size), batch_first=True)], 0)
+        #    target = torch.cat([chunk.unsqueeze(0) for chunk in pad_sequence(torch.split(target, self.chunk_size), batch_first=True)], 0)
         #print("target: ", target.shape)
-        return pad_sequence([source, target], batch_first=True).reshape(-1, self.chunk_size), self.Label[idx]
+        # .reshape(-1, self.chunk_size)
+        return pad_sequence([source, target], batch_first=True), self.Label[idx]

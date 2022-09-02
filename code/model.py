@@ -5,7 +5,7 @@ class SetTransformer(nn.Module):
         super(SetTransformer, self).__init__()
         self.name = 'SetTransformer'
         
-        self.enc = nn.Sequential(ISAB(kwargs.chunk_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
+        self.enc = nn.Sequential(ISAB(kwargs.input_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
                                  ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
                                  ISAB(kwargs.proj_dim, kwargs.output_size, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
         
