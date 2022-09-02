@@ -7,17 +7,18 @@ from tqdm import tqdm
 import random
 from torch.utils.data import DataLoader
 import time
-from sklearn import preprocessing
 
 def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, train_ents, valid_ents, test_ents, return_test_embs=True):
     """This function takes the dictionary of aligned entities between two KGs and their corresponding embeddings (as entity to vector dictionaries)
-    and returns S, T, S_test, T_test, and R defined as follows:
+    and returns S, T, S_valid, T_valid, S_test, and T_test:
     
-    -- S: Subset of the source embeddings, i.e. the matrix of aligned entity embeddings in the first knowledge graph
+    -- S: Subset of the source embeddings, i.e. the matrix of aligned entity embeddings in the first knowledge graph (for training)
     
-    -- T: Subset of the matrix of aligned entity embeddings in the second knowledge graph
+    -- T: Subset of the matrix of aligned entity embeddings in the second knowledge graph (for training)
     
-    -- S_test and T_test are the embedding matrices corresponding to the lef-out SameAs links
+    -- S_valid and T_valid are the embedding matrices corresponding to SameAs links in the validation set (10% of the whole data)
+    
+    -- S_test and T_test are the embedding matrices corresponding to SameAs links in the test set (70% of the whole data)
     
     """
     print()
@@ -47,12 +48,14 @@ def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, tra
             T_valid[i] = entity2vec2[alignment_dict[key]] if isinstance(entity2vec2, dict) else entity2vec2.loc[alignment_dict[key]].values
     
     if return_test_embs:
-        #S, T = preprocessing.normalize(S), preprocessing.normalize(T)
-        #S_test, T_test = preprocessing.normalize(S_test), preprocessing.normalize(T_test)
-        #S_valid, T_valid = preprocessing.normalize(S_valid), preprocessing.normalize(T_valid)
+        if np.abs(S).mean(0).max() < 0.1: # For numerical stability
+            S, T = 100*S, 100*T
+            S_test, T_test = 100*S_test, 100*T_test
+            S_valid, T_valid = 100*S_valid, 100*T_valid
         return S, T, S_valid, T_valid, S_test, T_test
     else:
-        #S, T = preprocessing.normalize(S), preprocessing.normalize(T)
+        if np.abs(S).mean(0).max() < 0.1: # For numerical stability
+            S, T = 100*S, 100*T
         return S, T
         
         
