@@ -38,12 +38,12 @@ parser.add_argument('--input_size', type=int, default=300, help='Input size (emb
 parser.add_argument('--output_size', type=int, default=200, help='Output size (returned embeddings\' dimension)')
 parser.add_argument('--proj_dim', type=int, default=256, help='Size of hidden layers')
 parser.add_argument('--num_inds', type=int, default=32, help='Number of induced components')
-parser.add_argument('--num_heads', type=int, default=8, help='Number of attention heads')
+parser.add_argument('--num_heads', type=int, default=4, help='Number of attention heads')
 parser.add_argument('--precision', type=float, default=0.2, help='The precision or confidence for the alignment')
 parser.add_argument('--margin', type=float, default=0.0, help='The margin in CosineEmbeddingLoss')
 parser.add_argument('--num_seeds', type=int, default=2, help='Number of seed components in the output')
 parser.add_argument('--ln', type=str2bool, default=False, help='Whether to use layer normalization')
-parser.add_argument('--epochs', type=int, default=150, help='Number of training epochs')
+parser.add_argument('--epochs', type=int, default=2, help='Number of training epochs')
 parser.add_argument('--folds', type=int, default=5, help='Number of folds for cross-validation')
 parser.add_argument('--batch_size', type=int, default=512, help='Training batch size')
 parser.add_argument('--test', type=str2bool, default=True, help='Whether to run evaluation on the test data')
@@ -65,6 +65,7 @@ for dataset in args.datasets:
         json.dump(vars(args), setting)
         
     valid_res = []
+    training_time = []
     for fold in range(1,args.folds+1):
         emb1, emb2, train_ents, valid_ents, test_ents, links = get_data(data_path[dataset], fold)
         S, T, S_valid, T_valid, S_test, T_test = get_source_and_target_matrices(links, emb1, emb2, train_ents, valid_ents, test_ents)
@@ -80,10 +81,12 @@ for dataset in args.datasets:
         valid_dataset = AlignDataSet(data_valid, dataset.upper(), args.chunk_size)
         ##
         
-        corrupt_source, corrupt_target = generate_false_matching([S,T])
-        labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
-        source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
-        data = [source, target, labels]
+        #corrupt_source, corrupt_target = generate_false_matching([S,T])
+        #labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
+        labels = torch.ones(S.shape[0]).long()
+        #source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
+        #data = [source, target, labels]
+        data = [S, T, labels]
         train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
         print()
@@ -93,7 +96,8 @@ for dataset in args.datasets:
         print("*****")
         print("Training time: ", duration)
         print("*****")
-        valid_res.append([valid_results, duration])
+        training_time.append(duration)
+        valid_res.append(valid_results)
         
             
         ## Test
@@ -104,11 +108,14 @@ for dataset in args.datasets:
             data_test = [S_test, T_test, test_labels]
             test_dataset = AlignDataSet(data_test, dataset.upper(), args.chunk_size)
             alignment_rest, hits, mr, mrr = test(model, test_dataset, args.num_workers, args.batch_size)
-            test_res[fold] = [list(hits), mr, mrr]
+            test_res[f"fold{fold}"] = [list(hits), mr, mrr]
             print()
-            
-    with open(f"{data_path[dataset]}/SetTransformer_test_results.json", "w") as file:
-        json.dump({"test results": test_res}, file)
-        
+    if args.test:        
+        with open(f"{data_path[dataset]}/SetTransformer_test_results.json", "w") as file:
+            json.dump({"test results": test_res}, file)
+
     with open(f"{data_path[dataset]}/SetTransformer_valid_results.json", "w") as file:
         json.dump({"validation results": valid_res}, file)
+        
+    with open(f"{data_path[dataset]}/SetTransformer_training_time.json", "w") as file:
+        json.dump({"time": training_time}, file)
