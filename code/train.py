@@ -80,12 +80,12 @@ for dataset in args.datasets:
         valid_dataset = AlignDataSet(data_valid, dataset.upper(), args.chunk_size)
         ##
         
-        corrupt_source, corrupt_target = generate_false_matching([S,T])
-        labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
-        #labels = torch.ones(S.shape[0]).long()
-        source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
-        data = [source, target, labels]
-        #data = [S, T, labels]
+        #corrupt_source, corrupt_target = generate_false_matching([S,T])
+        #labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
+        labels = torch.ones(S.shape[0]).long()
+        #source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
+        #data = [source, target, labels]
+        data = [S, T, labels]
         train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
         print()

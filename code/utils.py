@@ -114,6 +114,13 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:]), np.array(New_embs[:,1,:]))
     return alignment_rest, hits, mr, mrr
 
+def create_mult_negatives(i, x, y):
+    x_pos = x[i,:,:].unsqueeze(0)
+    y_pos = y[i].unsqueeze(0)
+    x_neg = torch.cat([x[i,0,:].repeat(x.shape[0]-1,1).unsqueeze(1),\
+                       x.index_select(0,torch.tensor([j for j in range(x.shape[0]) if j!=i]))[:,1,:].unsqueeze(1)], 1)
+    return torch.cat([x_pos, x_neg], 0), torch.cat([y_pos, -1*torch.ones(x.shape[0]-1)], 0)
+
 def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
     import copy
     gpu = False
@@ -132,25 +139,31 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=True)
     best_weights = copy.deepcopy(model.state_dict())
     best_hits1 = 0.0
-    Accuracy_list = []
+    #Accuracy_list = []
     t0 = time.time()
     for e in range(epochs):
-        Acc = 0.0
+        #Acc = 0.0
         for x, y in tqdm(train_dataloader):
-            if gpu:
-                x, y = x.cuda(), y.cuda()
-            out = model(x)
-            loss = model.loss(out, y)
-            Acc += model.score(out, y)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        Acc = (Acc/len(train_dataset)).item()
-        print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
-        print("\n#### Validation ####")
+            for i in range(x.shape[0]):
+                xx, yy = create_mult_negatives(i, x, y)
+                if gpu:
+                    xx, yy = xx.cuda(), yy.cuda()
+                out = model(xx)
+                if i == 0:
+                    loss = model.loss(out, yy)
+                else:
+                    loss = loss + model.loss(out, yy)
+        #Acc += model.score(out, y)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        #Acc = (Acc/len(train_dataset)).item()
+        #print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
+        #print("\n#### Validation ####")
+        print(f"#### Epoch {e+1}/{epochs}...")
         _, hits, _, _ = test(model, valid_dataset, num_workers, batch_size)
         print("#### Validation ####\n")
-        Accuracy_list.append(Acc)
+        #Accuracy_list.append(Acc)
         if hits[0] > best_hits1:
             best_hits1 = hits[0]
             best_weights = copy.deepcopy(model.state_dict())
@@ -158,7 +171,7 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
     duration = t1-t0
     model.load_state_dict(best_weights)
     torch.save(model, f"{storage_path}/SetTransformer_fold{fold}.pt")
-    with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
-        json.dump({"train acc": Accuracy_list}, file)
+    #with open(f"{storage_path}/SetTransformer_fold{fold}_acc_list.json", "w") as file:
+    #    json.dump({"train acc": Accuracy_list}, file)
     print("Best Hits1: ", best_hits1)
     return model, best_hits1, duration
