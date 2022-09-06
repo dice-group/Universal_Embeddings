@@ -84,14 +84,10 @@ def get_data(dataset, fold):
 
 
 def generate_false_matching(data):
-    corrupted_data = []
-    source, target = torch.empty(len(data[0]), data[0].shape[1]), torch.empty(len(data[0]), data[0].shape[1])
-    all_idx = set(range(len(data[0])))
-    for i in range(len(data[0])):
-        candidate_idx = list(all_idx-{i})
-        idx = random.choice(candidate_idx)
-        source[i] = data[0][i]
-        target[i] = data[1][idx]
+    rand_idx = list(range(data[0].shape[0]))
+    random.shuffle(rand_idx)
+    source = data[0]
+    target = data[1][rand_idx]
     return source, target
 
 
@@ -106,15 +102,16 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     model.eval()
     model.to(device)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=False)
-    New_embs = torch.empty(len(test_dataset), model.num_seeds, model.out_dim)
+    New_embs = torch.empty(len(test_dataset), 2, model.out_dim)
     idx = 0
     for x, y in tqdm(test_dataloader):
         if gpu:
             x, y = x.cuda(), y.cuda()
         out = model(x)
-        New_embs[idx:idx+x.shape[0], :, :] = out.detach().cpu()
+        New_embs[idx:idx+x.shape[0], 0, :] = out[0].detach().cpu()
+        New_embs[idx:idx+x.shape[0], 1, :] = out[1].detach().cpu()
         idx += x.shape[0]
-    alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:].squeeze()), np.array(New_embs[:,1,:].squeeze()))
+    alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:]), np.array(New_embs[:,1,:]))
     return alignment_rest, hits, mr, mrr
 
 def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
@@ -144,7 +141,7 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
                 x, y = x.cuda(), y.cuda()
             out = model(x)
             loss = model.loss(out, y)
-            Acc += model.score(out.detach(), y)
+            Acc += model.score(out, y)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -165,4 +162,3 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
         json.dump({"train acc": Accuracy_list}, file)
     print("Best Hits1: ", best_hits1)
     return model, best_hits1, duration
-    

@@ -1,5 +1,4 @@
 import torch, numpy as np
-from torch.utils.data import DataLoader
 import argparse
 import random
 from model import SetTransformer
@@ -41,9 +40,9 @@ parser.add_argument('--num_inds', type=int, default=32, help='Number of induced 
 parser.add_argument('--num_heads', type=int, default=4, help='Number of attention heads')
 parser.add_argument('--precision', type=float, default=0.2, help='The precision or confidence for the alignment')
 parser.add_argument('--margin', type=float, default=0.0, help='The margin in CosineEmbeddingLoss')
-parser.add_argument('--num_seeds', type=int, default=2, help='Number of seed components in the output')
+parser.add_argument('--num_seeds', type=int, default=1, help='Number of seed components in the output')
 parser.add_argument('--ln', type=str2bool, default=False, help='Whether to use layer normalization')
-parser.add_argument('--epochs', type=int, default=2, help='Number of training epochs')
+parser.add_argument('--epochs', type=int, default=200, help='Number of training epochs')
 parser.add_argument('--folds', type=int, default=5, help='Number of folds for cross-validation')
 parser.add_argument('--batch_size', type=int, default=512, help='Training batch size')
 parser.add_argument('--test', type=str2bool, default=True, help='Whether to run evaluation on the test data')
@@ -81,12 +80,12 @@ for dataset in args.datasets:
         valid_dataset = AlignDataSet(data_valid, dataset.upper(), args.chunk_size)
         ##
         
-        #corrupt_source, corrupt_target = generate_false_matching([S,T])
-        #labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
-        labels = torch.ones(S.shape[0]).long()
-        #source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
-        #data = [source, target, labels]
-        data = [S, T, labels]
+        corrupt_source, corrupt_target = generate_false_matching([S,T])
+        labels = torch.cat([torch.ones(corrupt_source.shape[0]), -1*torch.ones(corrupt_source.shape[0])], 0).to(torch.long)
+        #labels = torch.ones(S.shape[0]).long()
+        source, target = torch.cat([S, corrupt_source], 0), torch.cat([T, corrupt_target], 0)
+        data = [source, target, labels]
+        #data = [S, T, labels]
         train_dataset = AlignDataSet(data, dataset.upper(), args.chunk_size)
         model = SetTransformer(args)
         print()

@@ -20,18 +20,20 @@ class SetTransformer(nn.Module):
         self.precision = kwargs.precision
         
     def loss(self, out, y):
-        for i in range(out.shape[1]-1):
+        for i in range(len(out)-1):
             if i == 0:
-                loss = self.Loss(out[:,0,:].squeeze(),out[:,1,:].squeeze(), y)
+                loss = self.Loss(out[i],out[i+1], y)
             else:
-                loss = loss + self.Loss(out[:,i,:].squeeze(),out[:,i+1,:].squeeze(), y)
+                loss = loss + self.Loss(out[i],out[i+1], y)
         return loss
     
     def score(self, out, y):
-        scores = torch.cat([self.similarity(out[:,i,:].squeeze(), out[:,i+1,:].squeeze()).unsqueeze(1) for i in range(out.shape[1]-1)], 1).min(dim=1).values
+        scores = torch.cat([self.similarity(out[i].detach(), out[i+1].detach()).unsqueeze(1) for i in range(len(out)-1)], 1).min(dim=1).values
         return torch.eq(torch.sign(scores-self.precision), y).sum().cpu()
         
         
     def forward(self, X):
-        enc_out = self.enc(X)
-        return self.dec(enc_out)
+        out = []
+        for i in range(X.shape[1]):
+            out.append(self.dec(self.enc(X[:,i,:].unsqueeze(1))).squeeze())
+        return out
