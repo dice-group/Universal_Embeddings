@@ -8,6 +8,8 @@ import random
 from torch.utils.data import DataLoader
 import time
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def get_source_and_target_matrices(alignment_dict, entity2vec1, entity2vec2, train_ents, valid_ents, test_ents, return_test_embs=True):
     """This function takes the dictionary of aligned entities between two KGs and their corresponding embeddings (as entity to vector dictionaries)
     and returns S, T, S_valid, T_valid, S_test, and T_test:
@@ -95,18 +97,13 @@ def _init_fn(worker_id):
     np.random.seed(3 + worker_id)
     
 def test(model, test_dataset, num_workers=8, batch_size=128):
-    gpu = False
-    if torch.cuda.is_available():
-        gpu = True
-    device = torch.device("cuda" if gpu else "cpu")
     model.eval()
     model.to(device)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, worker_init_fn=_init_fn, shuffle=False)
     New_embs = torch.empty(len(test_dataset), 2, model.out_dim)
     idx = 0
-    for x, y in tqdm(test_dataloader):
-        if gpu:
-            x, y = x.cuda(), y.cuda()
+    for x, _ in tqdm(test_dataloader):
+        x = x.to(device)
         out = model(x)
         New_embs[idx:idx+x.shape[0], 0, :] = out[0].detach().cpu()
         New_embs[idx:idx+x.shape[0], 1, :] = out[1].detach().cpu()
@@ -114,20 +111,29 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     alignment_rest, hits, mr, mrr = greedy_alignment(np.array(New_embs[:,0,:]), np.array(New_embs[:,1,:]))
     return alignment_rest, hits, mr, mrr
 
-def create_mult_negatives(i, x, y):
+def create_mult_negatives(i, x, y, n=None):
+    x, y = x.to(device), y.to(device)
+    if n is None:
+        n = x.shape[0] // 2
     x_pos = x[i,:,:].unsqueeze(0)
     y_pos = y[i].unsqueeze(0)
-    x_neg = torch.cat([x[i,0,:].repeat(x.shape[0]-1,1).unsqueeze(1),\
-                       x.index_select(0,torch.tensor([j for j in range(x.shape[0]) if j!=i]))[:,1,:].unsqueeze(1)], 1)
-    return torch.cat([x_pos, x_neg], 0), torch.cat([y_pos, -1*torch.ones(x.shape[0]-1)], 0)
+    x_neg = torch.cat([x[i,0,:].repeat(n,1).unsqueeze(1),\
+                       x.index_select(0,torch.tensor(random.sample([j for j in range(x.shape[0]) if j!=i], n)))[:,1,:].unsqueeze(1)], 1)
+    return torch.cat([x_pos, x_neg], 0).to(device), torch.cat([y_pos, -1*torch.ones(n)], 0).to(device)
 
-def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
+def get_batch(x, y, n=32):
+    features = []
+    labels = []
+    for i in range(x.shape[0]):
+        xx, yy = create_mult_negatives(i, x, y, n=n)
+        features.append(xx)
+        labels.append(yy)
+    return torch.cat(features, 0), torch.cat(labels, 0).long()
+
+def train(model, train_dataset, valid_dataset, storage_path, n=32, fold=1, epochs = 50, num_workers=8, batch_size=128, lr=0.0001):
     import copy
-    gpu = False
     if torch.cuda.is_available():
-        gpu = True
         print("\n##### GPU available! #####\n")
-    device = torch.device("cuda" if gpu else "cpu")
     print()
     print("*"*60)
     print(f"FOLD {fold}: {model.name} starts training on {train_dataset.name}")
@@ -143,24 +149,23 @@ def train(model, train_dataset, valid_dataset, storage_path, fold=1, epochs = 50
     t0 = time.time()
     for e in range(epochs):
         #Acc = 0.0
+        Loss = 0.0
         for x, y in tqdm(train_dataloader):
-            for i in range(x.shape[0]):
-                xx, yy = create_mult_negatives(i, x, y)
-                if gpu:
-                    xx, yy = xx.cuda(), yy.cuda()
-                out = model(xx)
-                if i == 0:
-                    loss = model.loss(out, yy)
-                else:
-                    loss = loss + model.loss(out, yy)
-        #Acc += model.score(out, y)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            n = min(n, x.shape[0])
+            xx, yy = get_batch(x,y,n)
+            out = model(xx)
+            loss = model.loss(out, yy)
+            #Acc += model.score(out, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            Loss += loss.item()
         #Acc = (Acc/len(train_dataset)).item()
         #print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
         #print("\n#### Validation ####")
-        print(f"#### Epoch {e+1}/{epochs}...")
+        print(xx)
+        print(yy)
+        print(f"#### Epoch {e+1}/{epochs} ... Loss {Loss}")
         _, hits, _, _ = test(model, valid_dataset, num_workers, batch_size)
         print("#### Validation ####\n")
         #Accuracy_list.append(Acc)

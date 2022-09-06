@@ -32,6 +32,7 @@ parser.add_argument('--datasets', type=str, nargs='+', default=['dbpenfr15kv1', 
                                                                 help='Name of aligned KGs')
 parser.add_argument('--lr', type=float, default=3e-4, help='Learning rate')
 parser.add_argument('--num_workers', type=int, default=16, help='Number of workers to use to load data as into batches')
+parser.add_argument('--num_negatives', type=int, default=32, help='Number of negatives to sample during training')
 parser.add_argument('--chunk_size', type=int, default=100, help='Size of chunks along the embedding vector of each entity')
 parser.add_argument('--input_size', type=int, default=300, help='Input size (embedding dimension)')
 parser.add_argument('--output_size', type=int, default=200, help='Output size (returned embeddings\' dimension)')
@@ -91,7 +92,8 @@ for dataset in args.datasets:
         print()
         print("Model size: ", sum([p.numel() for p in model.parameters()]))
         print()
-        model, valid_results, duration = train(model, train_dataset, valid_dataset, data_path[dataset], fold, args.epochs, args.num_workers, args.batch_size, args.lr)
+        model, valid_results, duration = train(model, train_dataset, valid_dataset, data_path[dataset], args.num_negatives,\
+                                               fold, args.epochs, args.num_workers, args.batch_size, args.lr)
         print("*****")
         print("Training time: ", duration)
         print("*****")
