@@ -112,14 +112,13 @@ def test(model, test_dataset, num_workers=8, batch_size=128):
     return alignment_rest, hits, mr, mrr
 
 def create_mult_negatives(i, x, y, n=None):
-    x, y = x.to(device), y.to(device)
     if n is None:
         n = x.shape[0] // 2
-    x_pos = x[i,:,:].unsqueeze(0)
-    y_pos = y[i].unsqueeze(0)
-    x_neg = torch.cat([x[i,0,:].repeat(n,1).unsqueeze(1),\
-                       x.index_select(0,torch.tensor(random.sample([j for j in range(x.shape[0]) if j!=i], n)))[:,1,:].unsqueeze(1)], 1)
-    return torch.cat([x_pos, x_neg], 0).to(device), torch.cat([y_pos, -1*torch.ones(n)], 0).to(device)
+    x_pos = x[i,:,:].unsqueeze(0).to(device)
+    y_pos = y[i].unsqueeze(0).to(device)
+    x_neg = torch.cat([x[i,0,:].repeat(n,1).unsqueeze(1).to(device), x.index_select(0,torch.tensor(random.sample(\
+                            [j for j in range(x.shape[0]) if j!=i], n)))[:,1,:].unsqueeze(1).to(device)], 1)
+    return torch.cat([x_pos, x_neg], 0), torch.cat([y_pos, -1*torch.ones(n).to(device)], 0)
 
 def get_batch(x, y, n=32):
     features = []
