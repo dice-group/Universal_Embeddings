@@ -162,8 +162,6 @@ def train(model, train_dataset, valid_dataset, storage_path, n=32, fold=1, epoch
         #Acc = (Acc/len(train_dataset)).item()
         #print(f"Epoch {e+1}/{epochs} ... Loss: {loss.item()}, Acc: {Acc}")
         #print("\n#### Validation ####")
-        print(xx)
-        print(yy)
         print(f"#### Epoch {e+1}/{epochs} ... Loss {Loss}")
         _, hits, _, _ = test(model, valid_dataset, num_workers, batch_size)
         print("#### Validation ####\n")
