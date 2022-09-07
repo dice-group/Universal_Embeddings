@@ -151,7 +151,10 @@ def train(model, train_dataset, valid_dataset, storage_path, n=32, fold=1, epoch
         Loss = 0.0
         for x, y in tqdm(train_dataloader):
             n = min(n, x.shape[0])
-            xx, yy = get_batch(x,y,n)
+            if n == 0:
+                xx, yy = x.to(device), y.to(device)
+            else:
+                xx, yy = get_batch(x,y,n)
             out = model(xx)
             loss = model.loss(out, yy)
             #Acc += model.score(out, y)
