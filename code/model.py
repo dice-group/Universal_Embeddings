@@ -6,12 +6,10 @@ class SetTransformer(nn.Module):
         self.name = 'SetTransformer'
         
         self.enc = nn.Sequential(ISAB(kwargs.input_size, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
-                                 ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln),
-                                 ISAB(kwargs.proj_dim, kwargs.output_size, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
+                                 ISAB(kwargs.proj_dim, kwargs.proj_dim, kwargs.num_heads, kwargs.num_inds, ln=kwargs.ln))
         
         
-        self.dec = nn.Sequential(PMA(kwargs.output_size, kwargs.num_heads, kwargs.num_seeds, ln=kwargs.ln),
-                                 SAB(kwargs.output_size, kwargs.output_size, kwargs.num_heads, ln=kwargs.ln))
+        self.dec = SAB(kwargs.proj_dim, kwargs.output_size, kwargs.num_heads, ln=kwargs.ln)
         
         self.Loss = nn.CosineEmbeddingLoss(margin=kwargs.margin)
         self.similarity = nn.CosineSimilarity()
@@ -35,5 +33,5 @@ class SetTransformer(nn.Module):
     def forward(self, X):
         out = []
         for i in range(X.shape[1]):
-            out.append(self.dec(self.enc(X[:,i,:].unsqueeze(1))).squeeze())
+            out.append(self.dec(self.enc(X[:,i,:].unsqueeze(1).permute(1,0,2))).squeeze())
         return out
