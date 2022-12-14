@@ -1,24 +1,40 @@
 # Universal_Embeddings
-This repository implements universal embeddings for KGs using the orthogonal procrustes algorithm.
+This repository implements universal embeddings for KGs.
 
 ## Installation
 
 Clone this repository:
 ```
-https://github.com/dice-group/Universal_Embeddings.git
+git clone https://github.com/dice-group/Universal_Embeddings.git
+
 ``` 
+Also clone dice-embeddings into Universal_Embeddings:
+
+```
+cd Universal_Embeddings
+
+git clone https://github.com/dice-group/dice-embeddings.git
+
+```
 
 Create a working environment and activate it:
+
 ```
-conda env create -f environment.yml
+conda create -n unikge python=3.9.12
 
 conda activate unikge
  
 ```
 
-Download Datasets from [drive](https://drive.google.com/file/d/1lr760Im4iqDsUMFx7UDIgbteIZ6P5SnF/view?usp=sharing) and extract the zip file 
+Install all dependencies in requirements.txt
+
+## Evaluation datasets
+
+Download evaluation datasets from [hobbit](https://hobbitdata.informatik.uni-leipzig.de/KGE/splits.zip) and extract the zip file 
 
 ## Reproducing the reported results
+Enter in dice-embeddings: `cd dice-embeddings`
 
-- To reproduce the evaluation results, open and run the jupyter notebook file Embedding_Alignment.ipynb
-- Or alternatively open a terminal and run ``` run_evaluation.py ```. Use -h for more options
+Run the following to start training embeddings:
+
+`` python main.py --path_dataset_folder path_to_kg_folder --model model_name --batch_size 8192 --embedding_dim 32 --eval train_test --num_epochs 500 ``
