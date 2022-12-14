@@ -30,7 +30,7 @@ Install all dependencies in requirements.txt
 
 ## Evaluation datasets
 
-Download evaluation datasets from [hobbit](https://hobbitdata.informatik.uni-leipzig.de/KGE/splits.zip) and extract the zip file 
+Download evaluation datasets from [hobbit](https://hobbitdata.informatik.uni-leipzig.de/UniKGE/splits.zip) and extract the zip file 
 
 ## Reproducing the reported results
 Enter in dice-embeddings: `cd dice-embeddings`
