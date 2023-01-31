@@ -1,4 +1,4 @@
-[submodule "https:/github.com/dice-group/dice-embeddings"]
+[submodule "dice-embeddings"]
 	path = dice-embeddings
 	url = https://github.com/dice-group/dice-embeddings
 [submodule "embeddings.cc"]
