@@ -1,0 +1,6 @@
+[submodule "https:/github.com/dice-group/dice-embeddings"]
+	path = https:/github.com/dice-group/dice-embeddings
+	url = https://github.com/dice-group/embeddings.cc
+[submodule "embeddings.cc"]
+	path = embeddings.cc
+	url = https://github.com/dice-group/embeddings.cc
