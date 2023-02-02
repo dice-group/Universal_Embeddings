@@ -1,59 +1,58 @@
-# Universal_Embeddings
-This repository implements universal embeddings for KGs.
+# Universal Embeddings for Knowledge Graphs
 
-## Description
+This repository contains code related to the scientific article *Universal Knowledge Graph Embeddings*.  
+The article is currently under review.
 
-Clone this repository:
+## Code structure
 
-```
-git clone https://github.com/dice-group/Universal_Embeddings.git
+The code of the Universal Embeddings approach comprises this main repository *Universal_Embeddings* and two sub-repositories: *dice-embeddings* and *embeddings.cc*. They are briefly introduced in the following and documented in the repositories themselfes.
 
-``` 
+* **Main repository: Universal_Embeddings**  
+This repository contains the main code to compute Universal Embeddings for Knowledge Graphs.
+The calculation is based on pre-computed embeddings, described below.
+The installation and training is also described in the respective sections below.
+* **Sub-repository: dice-embeddings**  
+We extended the [dice-embeddings repository](https://github.com/dice-group/dice-embeddings) in cooperation with the main programmer and used it as an underlying base to compute the final Universal Knowledge Graph Embeddings. It implements several knowledge graph embedding models, including ConEx, QMult, ComplEx and DistMult.
+* **Sub-repository: embeddings.cc**  
+The [embeddings.cc repository](https://github.com/dice-group/embeddings.cc) was implemented on top of our computed Universal Embeddings for the artivle *Universal Knowledge Graph Embeddings*. It implements the online API for providing the embeddings data. The API is deployed at [https://embeddings.cc](https://embeddings.cc/). 
 
-There are two sub-repositories in this repository: `dice-embeddings` and `embeddings.cc`
+## Resulting data
 
-### dice-embeddings
-
-The source repository is at [dice-embeddings](https://github.com/dice-group/dice-embeddings.git). It is used to compute our universal knowledge graph embeddings. It implements several knowledge graph embedding models, including ConEx, QMult, ComplEx, DistMult, etc.
-
-
-### embeddings.cc
-
-This repository implements the API ([embeddings.cc](https://embeddings.cc/)) for providing our universal embeddings. Additional information can be found on the source [github](https://github.com/dice-group/embeddings.cc) repository. At [embeddings.cc](https://embeddings.cc/) and [zenodo](https://zenodo.org/record/7566020#.Y9vKk9LMJH6), we provide over 170 million entity emebddings from the merge of [DBpedia](https://www.dbpedia.org/blog/dbpedia-snapshot-2022-09-release/) and [Wikidata](https://dumps.wikimedia.org/wikidatawiki/). These embeddings are computed using the ConEx embedding model which was chosen based on its performance on our experiments in Table 3. We will add more datasets in our future releases.
-
+On [https://embeddings.cc](https://embeddings.cc/) and also in a dump file on Zenodo ([DOI: 10.5281/zenodo.7566020](https://doi.org/10.5281/zenodo.7566020)) we provide roughly 180 million entity emebddings from the merge of DBpedia ([DBpedia Snapshot 2022-09](https://www.dbpedia.org/blog/dbpedia-snapshot-2022-09-release/)) and Wikidata ([Wikidata dumps](https://dumps.wikimedia.org/wikidatawiki/)). These embeddings are computed using the ConEx embedding model which was chosen based on its performance on our experiments in article table 3.
 
 ## Installation
 
-Make sure Ananconda is install on your machine. 
+Start with cloning this repository:
 
-1. Create a working environment and activate it:
-
+```bash
+git clone https://github.com/dice-group/Universal_Embeddings.git
 ```
+
+Make sure [Ananconda](https://www.anaconda.com/) is install on your machine.  
+Create a working environment and activate it:
+```bash
 conda create -n unikge python=3.9.12
-
 conda activate unikge
- 
 ```
 
-2. Install all dependencies in requirements.txt:
+Install all dependencies in requirements.txt:
 
-`` pip install -r requirements.txt ``
+```bash
+pip install -r requirements.txt
+```
 
 
-## Training universal embeddings
+## Training Universal Embeddings
 
+### Reproducing the reported paper results (Table 3 in the article)
 
-### Reproducing the reported results (Table 3)
+1. Download the [evaluation datasets zip file](https://hobbitdata.informatik.uni-leipzig.de/UniKGE/splits.zip)  and extract it.
 
-1. Download evaluation datasets from [hobbit](https://hobbitdata.informatik.uni-leipzig.de/UniKGE/splits.zip) and extract the zip file.
-
-2. Make sure `dice-embeddings` is cloned and switch to the `CLF` branch using `git checkout CLF` then `git checkout .`.
+2. Make sure `dice-embeddings` is cloned and switch to the `CLF` branch using `git checkout CLF` then `git checkout .`
 
 3. To reproduce evaluation results (Table 3) in the paper, enter in the dice-embeddings repository with `cd dice-embeddings` and run the following command:
-
-`` python main.py --path_dataset_folder {path_to_kg_folder} --model {model_name} --batch_size 8192 --embedding_dim 32 --eval train_test --num_epochs 500 ``
-
-Here, {path_to_kg_folder} is the path to DBpedia, DBpedia+, Wikidata, or Wikidata+ which are downloaded above. {model_name} is the embedding model name, i.e., ConEx, DistMult, ComplEx, or QMult.
+`` python main.py --path_dataset_folder {path_to_kg_folder} --model {model_name} --batch_size 8192 --embedding_dim 32 --eval train_test --num_epochs 500 ``  
+Inside the command, ``{path_to_kg_folder}`` is the path to DBpedia, DBpedia+, Wikidata, or Wikidata+ which are downloaded above. ``{model_name}`` is the embedding model name, i.e., ConEx, DistMult, ComplEx, or QMult.
 
 
 ### Computing universal embeddings on other knowledge graphs
@@ -62,7 +61,7 @@ Here, {path_to_kg_folder} is the path to DBpedia, DBpedia+, Wikidata, or Wikidat
 
 2. Run `` python main.py --path_dataset_folder {path_to_kg_folder} --model {model_name} --batch_size {e.g. 1024} --embedding_dim {e.g. 32} --eval train_test --num_epochs {e.g. 200} ``
 
-3. Call .get_embeddings() on the trained model to obtain entity and relation embeddings
+3. Call .get_embeddings() on the trained model to obtain entity and relation embeddings.
 
 
 
