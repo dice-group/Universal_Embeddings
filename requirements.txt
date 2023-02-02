@@ -1,8 +1,11 @@
-pip install httpx
-pip3 install pandas==1.5.1 modin==0.16.2 vaex==4.14.0 polars==0.14.26
-pip3 install torch==1.13.0 
-pip3 install pytorch-lightning==1.6.4
-pip3 install scikit-learn==1.1.1
-pip3 install pytest==6.2.5
-pip3 install gradio==3.0.17
-pip3 install pyarrow==8.0.0
+httpx
+pandas==1.5.1
+torch==1.13.0 
+pytorch-lightning==1.6.4
+scikit-learn==1.1.1
+pytest==6.2.5
+gradio==3.0.17
+pyarrow==8.0.0
+modin==0.16.2
+vaex==4.14.0
+polars==0.14.26
