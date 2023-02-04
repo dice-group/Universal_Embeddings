@@ -5,14 +5,13 @@ The article is currently under review.
 
 ## Code structure
 
-The code of the Universal Embeddings approach comprises this main repository *Universal_Embeddings* and two sub-repositories: *dice-embeddings* and *embeddings.cc*. They are briefly introduced in the following and documented in the repositories themselfes.
+The code of the Universal Embeddings approach comprises this main repository *Universal_Embeddings* and two sub-repositories: *dice-embeddings* and *embeddings.cc*. They are briefly introduced in the following and documented in the repositories themselves.
 
 * **Main repository: Universal_Embeddings**  
-This repository contains the main code to compute Universal Embeddings for Knowledge Graphs.
-The calculation is based on pre-computed embeddings, described below.
-The installation and training is also described in the respective sections below.
+This repository contains two notebooks: merge.ipynb and Visualize_Embeddings.ipynb. The first notebook implements the merge (fusion) of DBpedia and Wikidata via sameAs links. The second notebook visualizes the embeddings of the same entities across different knowledge graphs.
+The computation of universal embeddings is based on the [dice-embeddings](https://github.com/dice-group/dice-embeddings) framework. We also develop the [embeddings.cc repository](https://github.com/dice-group/embeddings.cc) to provide universal embeddings as a service. 
 * **Sub-repository: dice-embeddings**  
-We extended the [dice-embeddings repository](https://github.com/dice-group/dice-embeddings) in cooperation with the main programmer and used it as an underlying base to compute the final Universal Knowledge Graph Embeddings. It implements several knowledge graph embedding models, including ConEx, QMult, ComplEx and DistMult.
+We use the [dice-embeddings repository](https://github.com/dice-group/dice-embeddings) to compute universal knowledge graph embeddings. It implements several knowledge graph embedding models, including ConEx, QMult, ComplEx and DistMult.
 * **Sub-repository: embeddings.cc**  
 The [embeddings.cc repository](https://github.com/dice-group/embeddings.cc) was implemented on top of our computed Universal Embeddings for the artivle *Universal Knowledge Graph Embeddings*. It implements the online API for providing the embeddings data. The API is deployed at [https://embeddings.cc](https://embeddings.cc/). 
 
