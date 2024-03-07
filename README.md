@@ -1,7 +1,6 @@
 # Universal Embeddings for Knowledge Graphs
 
-This repository contains code related to the scientific article *Universal Knowledge Graph Embeddings*.  
-The article is currently under review.
+This repository contains code related to the scientific article *Universal Knowledge Graph Embeddings*.
 
 ## Code structure
 
@@ -21,25 +20,27 @@ On [https://embeddings.cc](https://embeddings.cc/) and also in a dump file on Ze
 
 ## Installation
 
-Start with cloning this repository:
+- Start with cloning this repository:
 
 ```bash
-git clone https://github.com/dice-group/Universal_Embeddings.git
+git clone --recursive https://github.com/dice-group/Universal_Embeddings.git
 ```
+Note the flag `--recursive` which is used to clone the submodules. This is necessary to ensure that the code runs as each of the submodules have undergone refactoring.
 
-Make sure [Ananconda](https://www.anaconda.com/) is install on your machine.  
+- Make sure [Ananconda](https://www.anaconda.com/) is install on your machine.  
 Create a working environment and activate it:
 ```bash
 conda create -n unikge python=3.9.12
 conda activate unikge
 ```
 
-Install all dependencies in requirements.txt:
+- Install all dependencies in requirements.txt:
 
 ```bash
 pip install -r requirements.txt
 ```
 
+It may be neccessary to additionally install the required libraries for each submodule.
 
 ## Training Universal Embeddings
 
