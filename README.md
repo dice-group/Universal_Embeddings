@@ -40,8 +40,6 @@ conda activate unikge
 pip install -r requirements.txt
 ```
 
-It may be neccessary to additionally install the required libraries for each submodule.
-
 ## Training Universal Embeddings
 
 ### Reproducing the reported paper results (Table 3 in the article)
@@ -52,7 +50,9 @@ It may be neccessary to additionally install the required libraries for each sub
 
 3. To reproduce evaluation results (Table 3) in the paper, enter in the dice-embeddings repository with `cd dice-embeddings` and run the following command:
 `` python main.py --path_dataset_folder {path_to_kg_folder} --model {model_name} --batch_size 8192 --embedding_dim 32 --eval train_test --num_epochs 500 ``  
-Inside the command, ``{path_to_kg_folder}`` is the path to DBpedia, DBpedia+, Wikidata, or Wikidata+ which are downloaded above. ``{model_name}`` is the embedding model name, i.e., ConEx, DistMult, ComplEx, or QMult.
+Inside the command, ``{path_to_kg_folder}`` is the path to DBpedia, DBpedia+, Wikidata, or Wikidata+ which are downloaded above. ``{model_name}`` is the embedding model name, i.e., ConEx, DistMult, ComplEx, or QMult.`
+
+*Remark* It is also possible to run all experiments with a single bash script. For this, just execute `./execute_training` from the parent directory `Universal\_Embeddings`
 
 
 ### Computing universal embeddings on other knowledge graphs

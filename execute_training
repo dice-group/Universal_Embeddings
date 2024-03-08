@@ -1,0 +1,37 @@
+#!/bin/bash
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia+ --model ConEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia+ --model QMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia+ --model DistMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia+ --model ComplEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia --model ConEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia --model QMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia --model DistMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/DBpedia --model ComplEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata+ --model ConEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata+ --model QMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata+ --model DistMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata+ --model ComplEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata --model ConEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata --model QMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata --model DistMult --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
+
+python dice-embeddings/main.py --path_dataset_folder ./splits/Wikidata --model ComplEx --batch_size 8192 --embedding_dim 32 --eval test --num_epochs 500
