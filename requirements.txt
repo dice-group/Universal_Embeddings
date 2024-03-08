@@ -5,7 +5,7 @@ pytorch-lightning==1.6.4
 scikit-learn==1.1.1
 pytest==6.2.5
 gradio==3.13.2
-pyarrow==8.0.0
+pyarrow==14.0.1
 modin==0.16.2
 vaex==4.14.0
 polars==0.14.26
