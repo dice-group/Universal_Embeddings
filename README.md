@@ -52,7 +52,7 @@ pip install -r requirements.txt
 `` python main.py --path_dataset_folder {path_to_kg_folder} --model {model_name} --batch_size 8192 --embedding_dim 32 --eval train_test --num_epochs 500 ``  
 Inside the command, ``{path_to_kg_folder}`` is the path to DBpedia, DBpedia+, Wikidata, or Wikidata+ which are downloaded above. ``{model_name}`` is the embedding model name, i.e., ConEx, DistMult, ComplEx, or QMult.`
 
-*Remark* It is also possible to run all experiments with a single bash script. For this, just execute `./execute_training` from the parent directory `Universal\_Embeddings`
+*Remark:* It is also possible to run all experiments with a single bash script. For this, just execute `./execute_training` from the parent directory `Universal_Embeddings`
 
 
 ### Computing universal embeddings on other knowledge graphs
